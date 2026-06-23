@@ -23,7 +23,7 @@
 #
 # VOLÚMENES CLAVE:
 # - modelos: Un volumen virtual compartido que permite que el `ml-service` guarde
-#   los algoritmos entrenados (.pkl) y el `dashboard` los consuma en tiempo real.
+#   los algoritmos entrenados (.pkl) y el "dashboard" los consuma en tiempo real.
 
 
 services:
@@ -64,3 +64,4 @@ services:
 
 volumes:
   modelos:
+
