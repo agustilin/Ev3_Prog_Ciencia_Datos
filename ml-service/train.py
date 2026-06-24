@@ -56,16 +56,16 @@ usuarios_streaming = pd.read_csv("data/usuarios_streaming.csv")
 # Fuente desde la BD PostgreSQL
 engine = create_engine("postgresql://admin:admin@postgres:5432/streaming_usuarios")
 
-perfil_usuario = pd.read_sql(
+perfil_usuarios = pd.read_sql(
     """
     SELECT *
-    FROM perfil_usuario
+    FROM perfil_usuarios
     """,
     engine
 )
 
 # Integración: merge de ambas fuentes de datos
-data = usuarios_streaming.merge(perfil_usuario, on="id_cliente")
+data = usuarios_streaming.merge(perfil_usuarios, on="id_cliente")
 
 # Guarda el archivo con la data integrada
 data.to_csv("data/usuarios_data.csv", index=False)
