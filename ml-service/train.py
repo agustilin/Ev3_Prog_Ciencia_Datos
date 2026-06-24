@@ -144,3 +144,6 @@ pickle.dump(scaler, open("models/scaler.pkl", "wb"))
 pickle.dump(pca, open("models/pca.pkl", "wb"))
 
 print("Modelo guardado y proceso finalizado con éxito.")
+
+
+# docker-compose up --build postgres ml-service (este comando creará la imagen y levantará el contenedor ml-service antes de entrar al dashboard, para validar que todo funciona)
