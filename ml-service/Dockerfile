@@ -1,45 +1,66 @@
-# DOCKERFILE - SERVICIO DE MACHINE LEARNING (ml-service)
-
-
-# Es la guía de instrucciones paso a paso para que Docker sepa cómo armar 
-# el entorno del sistema. Garantiza que el sistema funcione igual en cualquier computadora, 
-# evitando el error de "en mi máquina funciona pero en la tuya no".
+# ==============================================================================
+# DOCKERFILE (ml-service)
+# ==============================================================================
+# Este archivo constituye la receta de construcción paso a paso para compilar la imagen
+# del servicio de Machine Learning. Define un entorno Linux aislado y autocontenido,
+# garantizando la reproducibilidad absoluta de la solución. Elimina de raíz el
+# clásico problema de "en mi máquina funciona, pero en el entorno de evaluación no".
 #
-# IMPORTANCIA PARA EL ENCARGO:
-# Es el eslabón final de la orquestación. Permite "empaquetar" todo el trabajo 
-# de ciencia de datos (código + librerías + modelo) en una pieza de software 
-# portable y lista para ejecutarse automáticamente.
+# Importancia Crítica para MLOps y la Solución End-to-End:
+#   Actúa como el eslabón de empaquetado operativo. Convierte tus scripts de entrenamiento
+#   y servicio (train.py y app.py) junto con sus dependencias exactas en una sola
+#   unidad portable (contenedor) capaz de coordinarse con la base de datos PostgreSQL
+#   y el dashboard en Streamlit mediante Docker Compose.
 #
-# FLUJO OPERATIVO:
-# 1. Base: Utiliza una imagen oficial de Python 3.11.
-# 2. Entorno: Prepara el espacio de trabajo (/app).
-# 3. Dependencias: Instala las librerías necesarias definidas en requirements.txt.
-# 4. Código: Copia tus scripts (train.py, app.py) al contenedor.
-# 5. Ejecución (CMD): Primero asegura que el modelo 
-#    exista (train.py) y, solo después, levanta la API (uvicorn).
+# Estrategia de Optimización de Capas (Docker Layer Caching):
+#   El orden de las instrucciones está estructurado científicamente para maximizar la velocidad 
+#   de reconstrucción. Se aíslan las dependencias pesadas (pip install) ANTES de copiar
+#   el código fuente. Si modificas un print o un comentario en tus scripts, Docker reutilizará 
+#   la caché de las librerías instaladas en segundos, evitando descargarlas de nuevo.
+# ==============================================================================
 
-
-# 1. Usamos una imagen oficial de Python
+# 1. IMAGEN BASE (Operating System & Runtime Environment)
+# Selecciona la plantilla oficial optimizada para desarrollo estructurado en Python.
+# Provee el intérprete 3.11 sobre una distribución Linux ligera, segura y estable.
 FROM python:3.11
 
-# 2. Establecemos el directorio de trabajo dentro del contenedor
+# 2. DIRECTORIO DE TRABAJO (Workspace Isolation)
+# Crea y define la carpeta raíz absoluta dentro del sistema de archivos del contenedor.
+# Toda instrucción posterior (COPY, RUN, CMD) se ejecutará posicionada físicamente aquí.
 WORKDIR /app
 
-# 3. Copiamos el archivo de requerimientos para que Docker sepa qué instalar
+# 3. AISLAMIENTO DE DEPENDENCIAS (Cache Pre-loading)
+# Copia únicamente el manifiesto de librerías al directorio actual de trabajo interno.
+# Este paso es aislado para indicarle al motor de Docker que si este archivo no cambia,
+# la costosa instalación de paquetes de la siguiente capa puede ser totalmente cacheada.
 COPY requirements.txt .
 
-# 4. Instalamos todas las librerías necesarias para el proyecto
+# 4. INSTALACIÓN DE LIBRERÍAS (Environment Provisioning)
+# Descarga y monta los paquetes analíticos y web (Pandas, Scikit-Learn, FastAPI, Uvicorn, etc.).
+# Garantiza que el contenedor posea exactamente el mismo ecosistema matemático que el equipo de desarrollo.
 RUN pip install -r requirements.txt
 
-# 5. Copiamos todos nuestros scripts (train.py, app.py) y carpetas al contenedor
+# 5. INYECCIÓN DEL CÓDIGO FUENTE (Application Deployment)
+# Copia todo el contenido del directorio local (scripts, configuraciones, directorios raíz) al contenedor.
+# Nota: Se ejecuta después de instalar librerías para evitar invalidar la caché del paso anterior 
+# cada vez que edites o guardes una línea de código en tus archivos .py.
 COPY . .
 
-# 6. Exponemos el puerto por donde hablará la API
+# 6. DOCUMENTACIÓN DE PUERTOS (Network Interface Mapping)
+# Informa explícitamente al motor de Docker y a los desarrolladores que el proceso 
+# de la API web interna escuchará peticiones de red a través del puerto especificado.
 EXPOSE 8000
 
-# 7. EL COMANDO MAESTRO (La solución al error de archivo no encontrado):
-# Primero ejecuta el entrenamiento (creando los .pkl) y, SOLO si es exitoso (&&),
-# levanta inmediatamente el servidor de FastAPI.
+# 7. FILOSOFÍA DE EJECUCIÓN MAESTRA (Sequential Entrypoint Execution)
+# Define la tarea principal e inmutable que ejecutará el contenedor de forma automática al inicializarse.
+#
+# Lógica de Cortocircuito Operacional (Operador &&):
+#   1. 'python train.py': Al encender el contenedor, arranca el pipeline de Machine Learning. 
+#      Se conecta a Postgres, calcula el K-Óptimo (PCA + Silhouette) y guarda los artefactos (.pkl).
+#   2. '&&': Barrera de seguridad crítica. Si el script de entrenamiento llegase a fallar por base de 
+#      datos o código, el operador detiene el flujo, evitando levantar una API vacía sin modelos.
+#   3. 'uvicorn app:app...': Si y solo si train.py finaliza con éxito (exit code 0), levanta de 
+#      inmediato el servidor FastAPI en el host 0.0.0.0 para escuchar tráfico del Dashboard.
 CMD python train.py && \
     uvicorn app:app \
     --host 0.0.0.0 \
