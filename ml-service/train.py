@@ -121,7 +121,7 @@ kl = KneeLocator(
 
 # Definimos el K final. Si KneeLocator no encuentra un codo claro, usamos como respaldo
 # el K que haya maximizado el Silhouette Score.
-k_optimo = kl.elbow or int(np.argmax(silhouettes) + 2)
+k_optimo = kl.elbow 
 
 # -------------------------------------------------------------------
 # 4. ENTRENAMIENTO DEL MODELO FINAL

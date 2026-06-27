@@ -1,27 +1,27 @@
 import streamlit as st
 import pandas as pd
 import requests
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-"""
-Dashboard de Analítica y Segmentación de Usuarios de Streaming
 
-Este módulo implementa una interfaz web interactiva utilizando Streamlit para visualizar,
-justificar y perfilar la segmentación de clientes de una plataforma de streaming. El dashboard 
-consume datos de un servicio de Machine Learning remoto (`ml-service`) y expone la información 
-en tres bloques estratégicos:
-1. Justificación técnica del modelo: Evaluación del número óptimo de clústeres mediante métricas 
-   de Inercia (Método del Codo), coeficiente de Silhouette y varianza explicada por PCA.
-2. Distribución de segmentos: Visualización espacial en componentes principales y volumen de usuarios.
-3. Perfilamiento de clústeres: Análisis detallado del comportamiento de los usuarios empleando 
-   las variables originales del negocio mediante tablas estadísticas, boxplots y un mapa de calor.
+#   Dashboard de Analítica y Segmentación de Usuarios de Streaming
 
-El objetivo principal es transformar datos analíticos complejos en insights accionables para la 
-toma de decisiones comerciales, retención de clientes y personalización de campañas de marketing.
-"""
+#    Este módulo implementa una interfaz web interactiva utilizando Streamlit para visualizar,
+#   justificar y perfilar la segmentación de clientes de una plataforma de streaming. El dashboard 
+#    consume datos de un servicio de Machine Learning remoto (`ml-service`) y expone la información 
+#    en tres bloques estratégicos:
+#    1. Justificación técnica del modelo: Evaluación del número óptimo de clústeres mediante métricas 
+#    de Inercia (Método del Codo), coeficiente de Silhouette y varianza explicada por PCA.
+#    2. Distribución de segmentos: Visualización espacial en componentes principales y volumen de usuarios.
+#    3. Perfilamiento de clústeres: Análisis detallado del comportamiento de los usuarios empleando 
+#    las variables originales del negocio mediante tablas estadísticas, boxplots y un mapa de calor.
+#
+#    El objetivo principal es transformar datos analíticos complejos en insights accionables para la 
+#    toma de decisiones comerciales, retención de clientes y personalización de campañas de marketing.
+
 
 # Configuración inicial de la página de Streamlit (Layout extendido y título del navegador)
 st.set_page_config(
@@ -216,6 +216,10 @@ center_text(
     "Aquí presentamos la separación en el espacio PCA, la distribución porcentual de cada cluster y una vista con las dos variables más relevantes."
 )
 
+# Mostrar la tabla completa de usuarios con el cluster asignado
+st.subheader("Clientes segmentados con su clúster asignado")
+st.dataframe(usuarios)
+
 # Creación del gráfico de dispersión (Scatter Plot) en el espacio bidimensional de las dos primeras componentes principales (PC1 vs PC2)
 fig_scatter = px.scatter(
     usuarios,
@@ -347,6 +351,15 @@ fig_2vars = px.scatter(
     hover_data=["cluster"]
 )
 fig_2vars.update_traces(marker=dict(size=10, line=dict(width=1, color="DarkSlateGrey")))
+fig_2vars.add_trace(
+    go.Scatter(
+        x=centroides["horas_consumo_mensual"],
+        y=centroides["gasto_mensual"],
+        mode="markers",
+        marker=dict(symbol="x", size=14, color="black", line=dict(width=2, color="black")),
+        name="Centroides"
+    )
+)
 fig_2vars.update_layout(template="plotly_white")
 center_plot(fig_2vars)
 
